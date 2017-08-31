@@ -29,7 +29,7 @@ case class Counter(tags: Seq[(String, String)]) {
 
   val proxyHost = config.getString("proxy.host")
   val proxyPort = config.getInt("proxy.port")
-  val maxThreads = config.getInt("maxThreads.num")
+  val maxThreads = config.getInt("maxThreads")
   val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
 
   val settings = if (proxyHost != "" || proxyPort != 0)
@@ -38,7 +38,8 @@ case class Counter(tags: Seq[(String, String)]) {
   else ConnectionPoolSettings(system)
 
   def countTagsAndAnswers() = {
-    Source(tags.toList)
+
+    Source(tags.toList.distinct)
       .filter(tag => tag._1 == "tag")
       .map(tag => HttpRequest(
         uri = s"https://api.stackexchange.com/2.2/search?pagesize=100&order=desc&sort=creation&tagged=${tag._2}&site=stackoverflow"))
@@ -63,5 +64,4 @@ case class Counter(tags: Seq[(String, String)]) {
     }
   }
 }
-
 
